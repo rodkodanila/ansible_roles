@@ -1,0 +1,65 @@
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: InitConfiguration
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  ttl: 24h0m0s
+  usages:
+  - signing
+  - authentication
+localAPIEndpoint:
+  advertiseAddress: {{ hostvars['master1']['ansible_host'] }}
+  bindPort: 6443
+nodeRegistration:
+  criSocket: "unix:///var/run/containerd/containerd.sock"
+  imagePullPolicy: IfNotPresent
+#  name: {{ MASTER1_NAME }}
+#  taints:
+#  - effect: NoSchedule
+#    key: node-role.kubernetes.io/master
+---
+apiVersion: kubeadm.k8s.io/v1beta3
+kind: ClusterConfiguration
+certificatesDir: /etc/kubernetes/pki
+clusterName: {{ CLUSTER_NAME }}
+controllerManager: {}
+dns: {}
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+imageRepository: "registry.k8s.io"
+apiServer:
+  timeoutForControlPlane: 4m0s
+  extraArgs:
+    authorization-mode: Node,RBAC
+    bind-address: 0.0.0.0
+    service-cluster-ip-range: {{ CLUSTER_IP_RANGE }}
+    service-node-port-range: {{ NODE_PORT_RANGE }}
+kubernetesVersion: {{ K8S_VERSION }}
+controlPlaneEndpoint: {{ LB_IP }}:{{ LB_PORT }}
+networking:
+  dnsDomain: {{ DNS_DOMAIN }}
+  podSubnet: {{ POD_SUBNET }}
+  serviceSubnet: {{ SERVICE_SUBNET }}
+scheduler: {}
+---
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+bindAddress: 0.0.0.0
+clusterCIDR: {{ POD_SUBNET }}
+ipvs:
+  strictARP: True
+mode: ipvs
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+clusterDNS:
+- 169.254.25.10
+systemReserved:
+  memory: 512Mi
+  cpu: 500m
+  ephemeral-storage: 2Gi
+# Default: "10Mi"
+containerLogMaxSize: 1Mi
+# Default: 5
+containerLogMaxFiles: 3

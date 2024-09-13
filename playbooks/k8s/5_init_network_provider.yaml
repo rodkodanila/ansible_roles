@@ -1,0 +1,18 @@
+---
+- hosts: master1
+  vars_files:
+    - ../../variables.yaml
+  tasks:
+  - name: Install the Tigera Calico operator and custom resource definitions.
+    shell: kubectl apply -f  https://docs.projectcalico.org/manifests/calico.yaml
+#    ignore_errors: yes
+
+    #ignore_errors: yes
+  #- name:
+  - name: Show all nodes
+    shell: kubectl get nodes
+    register: all_nodes
+
+  - name: Show nodes
+    debug:
+      var: all_nodes.stdout_lines

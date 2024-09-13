@@ -1,0 +1,40 @@
+---
+- hosts: [masters]
+
+  tasks:
+
+  - name: Check for kubelet.conf file
+    command: ls /etc/kubernetes/kubelet.conf
+    register: kubelet_conf
+    ignore_errors: yes
+
+  - name: Check for kubeadm config directory
+    command: ls /etc/kubernetes/manifests
+    register: kubeadm_manifests
+    ignore_errors: yes
+
+  - name: Determine if node is part of the cluster
+    set_fact:
+      is_in_cluster: "{{ kubelet_conf.rc == 0 or kubeadm_manifests.rc == 0 }}"
+
+  - name: Display result
+    debug:
+      msg: "Node {{ inventory_hostname }} is part of the cluster."
+    when: is_in_cluster
+
+  - name: Display not in cluster
+    debug:
+      msg: "Node {{ inventory_hostname }} is NOT part of the cluster."
+    when: not is_in_cluster
+
+
+  - name: Join the extra masters to cluster
+    shell: "{{ hostvars['master1'].kube_join_command }} --control-plane --certificate-key {{ hostvars['master1'].cert_masters_command }}"
+    when: inventory_hostname != "master1" and not is_in_cluster
+
+  - name: Copying required files
+    shell: |
+        mkdir -p $HOME/.kube
+        cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+        chown $(id -u):$(id -g) $HOME/.kube/config
+    when: not is_in_cluster

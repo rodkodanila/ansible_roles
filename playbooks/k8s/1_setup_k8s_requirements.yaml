@@ -1,0 +1,123 @@
+---
+- hosts: [all]
+  become: yes
+
+  vars_files:
+    - ../../variables.yaml
+
+
+  tasks:
+  - name: Add /sbin to PATH for all users
+    lineinfile:
+      path: /etc/profile
+      line: 'export PATH=$PATH:/sbin'
+      state: present
+      create: yes
+  - name: Create containerd.conf file
+    ansible.builtin.copy:
+      dest: /etc/modules-load.d/containerd.conf
+      content: |
+        overlay
+        br_netfilter
+
+  - name: Enable Kernel Module overlay
+    modprobe:
+      name: overlay
+      state: present
+
+  - name: Enable Kernel Module br_netfilter
+    modprobe:
+      name: overlay
+      state: present
+
+  - name: Create network settings for k8s (bridging, forwarding)
+    copy:
+      dest: /etc/sysctl.d/99-kubernetes-cri.conf
+      content: |
+        net.bridge.bridge-nf-call-iptables = 1
+        net.ipv4.ip_forward = 1
+        net.bridge.bridge-nf-call-ip6tables = 1
+      owner: root
+      group: root
+      mode: '0644'
+    notify:
+    - Reload sysctl
+
+
+
+
+  - name: Install containerd
+    apt:
+      name: containerd
+      state: latest
+
+  - name: Create directory
+    file:
+      path: /etc/containerd
+      state: directory
+
+  - name: Copy Standart config containerd
+    shell: "containerd config default |  tee /etc/containerd/config.toml"
+
+
+  - name: Change SystemdCgroup from false to true
+    replace:
+      path: /etc/containerd/config.toml
+      regexp: 'SystemdCgroup = false'
+      replace: 'SystemdCgroup = true'
+
+  - name: Restart containerd
+    service:
+      name: containerd
+      state: restarted
+
+  - name: Install apps
+    apt:
+      name:
+        - curl
+        - gpg
+        - net-tools
+      state: latest
+
+  - name: Download Kubernetes GPG key
+    apt_key:
+        url: https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key  # Replace with actual key URL if available
+        state: present
+        keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+  - name: Add Kubernetes APT repository
+    apt_repository:
+      repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /"
+      state: present
+
+
+  - name: Install apps kubeadm, kubectl, kubelet
+    apt:
+      name:
+        - kubeadm
+        - kubelet
+        - kubectl
+      state: latest
+
+
+  - name: Disable all swap immediately
+    command: swapoff -a
+
+  - name: Ensure swap is disabled in /etc/fstab
+    lineinfile:
+      path: /etc/fstab
+      regexp: '^([^#].*swap.*)'
+      state: absent
+
+  - name: Start and enable kubelet service
+    service:
+      name: kubelet
+      state: started
+      enabled: yes
+
+  handlers:
+  - name: Reload sysctl
+    command: sysctl --system
+  - name: Update APT package index
+    apt:
+      update_cache: yes

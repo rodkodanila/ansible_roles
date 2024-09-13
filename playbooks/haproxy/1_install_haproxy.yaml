@@ -1,0 +1,26 @@
+---
+- hosts: [masters]
+  vars_files:
+    - ../../variables.yaml
+  tasks:
+  - name: install HAProxy
+    apt:
+      name: haproxy
+      state: latest
+
+  - name: Copy haproxy.cfg from template
+    template:
+      src: files/haproxy.cfg.j2
+      dest: /etc/haproxy/haproxy.cfg
+    notify: Restart HAproxy
+  - name: Start/Enable HAProxy
+    service:
+      name: haproxy
+      state: started
+      enabled: yes
+
+  handlers:
+  - name: Restart HAproxy
+    service:
+      name: haproxy
+      state: restarted
