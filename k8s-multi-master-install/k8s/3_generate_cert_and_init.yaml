@@ -1,6 +1,8 @@
 ---
 - hosts: master1
+
   tasks:
+
   - name: Generate cert masters
     shell: kubeadm init phase upload-certs --upload-certs | tail -1
     register: cert_masters
@@ -17,10 +19,10 @@
     shell: kubeadm token create --print-join-command
     register: join_command
 
-
   - name: Set fact for join command
     set_fact:
       kube_join_command: "{{ join_command.stdout }}"
+
   - name: Display join command output
     debug:
       var: hostvars['master1'].kube_join_command

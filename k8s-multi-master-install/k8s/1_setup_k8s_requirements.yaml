@@ -7,12 +7,18 @@
 
 
   tasks:
+
+  - name: Update APT package index
+    apt:
+      update_cache: yes
+
   - name: Add /sbin to PATH for all users
     lineinfile:
       path: /etc/profile
       line: 'export PATH=$PATH:/sbin'
       state: present
       create: yes
+
   - name: Create containerd.conf file
     ansible.builtin.copy:
       dest: /etc/modules-load.d/containerd.conf
@@ -43,9 +49,6 @@
     notify:
     - Reload sysctl
 
-
-
-
   - name: Install containerd
     apt:
       name: containerd
@@ -58,7 +61,6 @@
 
   - name: Copy Standart config containerd
     shell: "containerd config default |  tee /etc/containerd/config.toml"
-
 
   - name: Change SystemdCgroup from false to true
     replace:
@@ -89,7 +91,8 @@
     apt_repository:
       repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /"
       state: present
-
+    notify:
+    - Update APT package index
 
   - name: Install apps kubeadm, kubectl, kubelet
     apt:
@@ -98,7 +101,6 @@
         - kubelet
         - kubectl
       state: latest
-
 
   - name: Disable all swap immediately
     command: swapoff -a

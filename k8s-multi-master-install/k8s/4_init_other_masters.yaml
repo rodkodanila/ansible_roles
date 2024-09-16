@@ -1,0 +1,31 @@
+---
+- hosts: [masters]
+
+  tasks:
+
+  - name: Check if kubernetes is already started
+    shell: |
+      ss -puntas | grep 6443 > /dev/null 2>&1;
+      STATUS=$?
+      echo ${STATUS}
+    register: kubestatus
+
+  - name: Print kubestat
+    debug:
+      var: kubestatus.stdout
+
+  - name: Join the extra masters to cluster
+    shell: "{{ hostvars['master1'].kube_join_command }} --control-plane --certificate-key {{ hostvars['master1'].cert_masters_command }}"
+    when: inventory_hostname != "master1" and kubestatus.stdout == "1"
+
+  - name: Copying required files
+    shell: |
+        mkdir -p $HOME/.kube
+        cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+        chown $(id -u):$(id -g) $HOME/.kube/config
+    when: kubestatus.stdout == "1"
+
+  - name: Remove taint from control-node
+    shell: "kubectl taint nodes --all node-role.kubernetes.io/control-plane-"
+    when: kubestatus.stdout == "1"
+    run_once: true

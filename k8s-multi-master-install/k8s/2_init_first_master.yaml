@@ -1,0 +1,66 @@
+---
+- hosts: master1
+
+  vars_files:
+    - ../../variables.yaml
+
+  tasks:
+  - name: Check if kubernetes is already started
+    shell: |
+      ss -puntas | grep 6443 > /dev/null 2>&1;
+      STATUS=$?
+      echo ${STATUS}
+    register: kubestatus
+
+  - name: Print kubestat
+    debug:
+      var: kubestatus.stdout
+
+  - name: Initializing Kubernetes cluster
+    #shell: kubeadm init --config /etc/kubernetes/kubeadm-init.yaml 2> /root/kube-init.logs
+    shell: |
+      kubeadm init --control-plane-endpoint "{{ LB_IP }}:{{ LB_PORT }}" \
+      --upload-certs \
+      --apiserver-advertise-address={{ hostvars['master1']['ansible_host'] }} \
+      --pod-network-cidr={{ POD_NETWORK }} \
+      > /root/k8s_init.log
+    register: output
+    when: kubestatus.stdout == "1"
+
+  - name: Generate cert masters
+    shell: kubeadm init phase upload-certs --upload-certs | tail -1
+    register: cert_masters
+
+  - name: Set fact for cert masters
+    set_fact:
+      cert_masters_command: "{{ cert_masters.stdout_lines[0] }}"
+
+  - name: Display cert_masters output
+    debug:
+      var: hostvars['master1'].cert_masters_command
+
+  - name: Generate join command
+    shell: kubeadm token create --print-join-command
+    register: join_command
+
+  - name: Set fact for join command
+    set_fact:
+      kube_join_command: "{{ join_command.stdout }}"
+
+  - name: Display join command output
+    debug:
+      var: hostvars['master1'].kube_join_command
+
+  - name: Check if $HOME/.kube exist
+    shell: |
+        ls $HOME/.kube > /dev/null 2>&1;
+        STATUS=$?
+        echo ${STATUS}
+    register: contentstatus
+
+  - name: Copying required files
+    shell: |
+        mkdir -p $HOME/.kube
+        cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+        chown $(id -u):$(id -g) $HOME/.kube/config
+    when: contentstatus.stdout == "2" and  kubestatus.stdout == "1"

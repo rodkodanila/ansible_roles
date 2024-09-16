@@ -1,0 +1,40 @@
+---
+- hosts: master1
+
+  vars_files:
+    - ../../variables.yaml
+
+  tasks:
+
+  - name: Check if /etc/kubernetes folder exists
+    stat:
+      path: /root/calico-custom-resources.yaml
+    register: calico_config
+
+  - name: Print message if /etc/kubernetes exists
+    debug:
+      msg: "/root/calico-custom-resources.yaml  exists."
+    when: calico_config.stat.exists
+
+  - name: Install NCI Calico
+    block:
+    - name: Install the Tigera Calico operator and custom resource definitions.
+      shell: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.1/manifests/tigera-operator.yaml
+      ignore_errors: yes
+
+    - name: Copy calico custom-resources settings
+      template:
+        src: files/calico.yaml.j2
+        dest: /root/calico-custom-resources.yaml
+
+    - name: Create the manifest to install Calico.
+      shell: "kubectl apply -f /root/calico-custom-resources.yaml"
+
+    - name: install calicoctl
+      shell: curl -L https://github.com/projectcalico/calico/releases/download/v3.28.1/calicoctl-linux-amd64 -o /usr/bin/calicoctl
+
+    - name: add permisssions for calicoctl
+      file:
+        path: /usr/bin/calicoctl
+        mode: "0755"
+    when: not calico_config.stat.exists

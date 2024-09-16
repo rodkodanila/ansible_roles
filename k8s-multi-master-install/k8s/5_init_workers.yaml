@@ -1,0 +1,19 @@
+---
+- hosts: [workers]
+
+  tasks:
+
+  - name: Check if kubernetes is already started
+    shell: |
+      ss -puntas | grep 6443 > /dev/null 2>&1;
+      STATUS=$?
+      echo ${STATUS}
+    register: kubestatus
+
+  - name: Print kubestat
+    debug:
+      var: kubestatus.stdout
+
+  - name: Join the extra masters to cluster
+    shell: "{{ hostvars['master1'].kube_join_command }} "
+    when: kubestatus.stdout == "1"
