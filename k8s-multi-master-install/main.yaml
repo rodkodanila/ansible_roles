@@ -13,6 +13,7 @@
 
 # generate cert and string for connetcion
 - include: 'k8s/3_generate_cert_and_init.yaml'
+
 # add other controls
 - include: 'k8s/4_init_other_masters.yaml'
 
