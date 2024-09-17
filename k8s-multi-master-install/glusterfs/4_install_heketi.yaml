@@ -1,41 +1,130 @@
 ---
-- hosts: master1
+- hosts: all
+  vars_files:
+    - ../../variables.yaml
   tasks:
-#  - name: Add contents of id_rsa.pub to authorized_keys
-#    lineinfile:
-#      path: ~/.ssh/authorized_keys
-#      line: "{{ lookup('file', 'files/heketi.pub') }}"
+  - name: Add contents of id_rsa.pub to authorized_keys
+    lineinfile:
+      path: ~/.ssh/authorized_keys
+      line: "{{ lookup('file', 'files/ssh/heketi.pub') }}"
 #      state: present
-#      create: yes
-  - name: Create group heketi
-    group:
+      create: yes
+
+  - name: configure heketi
+    block:
+    - name: Create group heketi
+      group:
+          name: heketi
+          state: present
+
+    - name: Create user heketi
+      user:
         name: heketi
+        group: heketi
+        shell: /sbin/nologin
         state: present
+        home: /home/heketi
+        create_home: no
+    - name: Create /etc/heketi
+      file:
+       path: /etc/heketi
+       owner: heketi
+       group: heketi
+       state: directory
+       mode: '0700'
 
-  - name: Create user heketi
-    user:
-      name: heketi
-      group: heketi
-      shell: /sbin/nologin
-      state: present
-      home: /home/heketi
-      create_home: no
-  - name: Create /etc/heketi
-    file:
-     path: /etc/heketi
-     owner: heketi
-     group: heketi
-     state: directory
-     mode: '0755'
+    - name: Create /var/log/heketi
+      file:
+        path: /var/log/heketi
+        owner: heketi
+        group: heketi
+        state: directory
+        mode: '0755'
+    - name: Create /var/lib/heketi
+      file:
+        path: /var/lib/heketi
+        owner: heketi
+        group: heketi
+        state: directory
+        mode: '0755'
+    - name: copy heketi
+      copy:
+        src: files/bin/heketi
+        dest: /usr/local/bin/heketi
+        owner: heketi
+        group: heketi
+        mode: 777
 
-  - name: install heketi-cli
-    shell: |
-      wget https://github.com/heketi/heketi/releases/download/v10.4.0/heketi-client-v10.4.0-release-10.linux.amd64.tar.gz
-      for i in `ls | grep heketi | grep .tar.gz`; do tar xvf $i; done
-      cp ./heketi-client/bin/heketi-cli /usr/local/bin
-      chmod +x /usr/local/bin/heketi-cli
-      rm -r heketi*.tar.gz
-  - name: copy topology.json
-    template:
-      src: files/topology.json.j2
-      dest: /etc/heketi/topology.json
+    - name: copy heketi-cli
+      copy:
+        src: files/bin/heketi-cli
+        dest: /usr/local/bin/heketi-cli
+        owner: heketi
+        group: heketi
+        mode: 777
+
+    - name: copy heketi.json
+      template:
+        src: files/heketi.json.j2
+        dest: /etc/heketi/heketi.json
+        owner: heketi
+        group: heketi
+        mode: 777
+
+    - name: Create service file from template
+      copy:
+          src: files/heketi.service
+          dest: /etc/systemd/system/heketi.service
+          mode: 0644
+    - name: Reload systemd
+      systemd:
+        daemon_reload: yes
+    - name: Enable and start service
+      systemd:
+        name: heketi.service
+        state: started
+        enabled: yes
+
+  #  - name: install heketi-cli
+  #    shell: |
+  #      wget -qc https://github.com/heketi/heketi/releases/download/v10.4.0/heketi-client-v10.4.0-release-10.linux.amd64.tar.gz
+  #      for i in `ls | grep heketi | grep .tar.gz`; do tar xvf $i; done
+  #      cp ./heketi-client/bin/heketi-cli /usr/local/bin
+  #      chmod +x /usr/local/bin/heketi-cli
+  #      rm -f heketi*.tar.gz
+  #      rm -rf heketi-cli
+    - name: copy topology.json
+      template:
+        src: files/topology.json.j2
+        dest: /etc/heketi/topology.json
+        owner: heketi
+        group: heketi
+        mode: 777
+    - name: copy heketi private key
+      copy:
+        src: files/ssh/heketi
+        dest: /etc/heketi/heketi
+        owner: root
+        group: root
+        mode: 0400
+
+    - name: copy heketi public key
+      copy:
+        src: files/ssh/heketi.pub
+        dest: /etc/heketi/heketi.pub
+        owner: root
+        group: root
+        mode: 600
+
+#    - name: restart heketi
+#      service:
+#        name: heketi
+#        state: restarted
+
+    - name: load topology
+      command: "heketi-cli topology load  --user {{ HEKETI_ADMIN_USER }} --secret {{ HEKETI_ADMIN_SECRET }} --json=/etc/heketi/topology.json"
+      register: topology_load_output
+    - name: print
+      debug:
+        var: topology_load_output
+    when: inventory_hostname == "master1"

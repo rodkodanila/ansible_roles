@@ -9,13 +9,13 @@
                                 "master1"
                             ],
                             "storage": [
-                                {{ hostvars['master1']['ansible_host'] }}
+                                "{{ hostvars['master1']['ansible_host'] }}"
                             ]
                         },
                         "zone": 1
                     },
                     "devices": [
-                        "/dev/vdb"
+                        "{{ DISK_NAME }}"
                     ]
                 },
                 {
@@ -25,29 +25,29 @@
                                 "master2"
                             ],
                             "storage": [
-                                {{ hostvars['master2']['ansible_host'] }}
+                                "{{ hostvars['master2']['ansible_host'] }}"
                             ]
                         },
                         "zone": 1
                     },
                     "devices": [
-                        "/dev/vdb"
+                        "{{ DISK_NAME }}"
                     ]
                 },
                 {
                     "node": {
                         "hostnames": {
                             "manage": [
-                                "master3"
+                                "{{ hostvars['master3']['ansible_host'] }}"
                             ],
                             "storage": [
-                                {{ hostvars['master3']['ansible_host'] }}
+                                "{{ hostvars['master3']['ansible_host'] }}"
                             ]
                         },
                         "zone": 1
                     },
                     "devices": [
-                        "/dev/vdb"
+                        "{{ DISK_NAME }}"
                     ]
                 },
                 {
@@ -57,13 +57,13 @@
                                 "worker1"
                             ],
                             "storage": [
-                                {{ hostvars['worker1']['ansible_host'] }}
+                                "{{ hostvars['worker1']['ansible_host'] }}"
                             ]
                         },
                         "zone": 1
                     },
                     "devices": [
-                        "/dev/vdb"
+                        "{{ DISK_NAME }}"
                     ]
                 }
             ]

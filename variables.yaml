@@ -12,3 +12,8 @@ VG_NAME: "vg_gluster"
 MOUNT_PATH: "/glusterfs_data"
 
 # heketi
+HEKETI_ADMIN_USER: "admin"
+HEKETI_ADMIN_SECRET: "dGFH32DSfgsf2cvD"
+
+HEKETI_USER: "user"
+HEKETI_SECRET: "sd4y5SFD2a5szZC2"

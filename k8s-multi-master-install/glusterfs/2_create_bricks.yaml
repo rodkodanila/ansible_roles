@@ -33,34 +33,34 @@
         vg: "{{ VG_NAME }}"
         pvs: "{{ DISK_NAME }}"
 
-    - name: Create logic lv-k8s
+    - name: Create logic {{LV_NAME}}
       lvol:
         vg: "{{ VG_NAME }}"
         lv: "{{ LV_NAME }}"
         size: 100%VG
         state: present
 
-    - name: Create xfs {{DISK_NAME}}/{{LV_NAME}}
-      filesystem:
-        fstype: xfs
-        dev: "/dev/mapper/{{ VG_NAME }}-{{ LV_NAME }}"
-        state: present
-
-    - name: Create mount point {{ MOUNT_PATH }}
-      file:
-        path: "{{ MOUNT_PATH }}"
-        owner: root
-        group: root
-        state: directory
-        mode: '0755'
-
-    - name: mount {{DISK_NAME}}/{{LV_NAME}}
-      mount:
-        src: "/dev/mapper/{{ VG_NAME }}-{{ LV_NAME }}"
-        path: "{{ MOUNT_PATH }}"
-        fstype: xfs
-        opts: defaults,noatime
-        state: mounted
+#    - name: Create xfs {{DISK_NAME}}/{{LV_NAME}}
+#      filesystem:
+#        fstype: xfs
+#        dev: "/dev/mapper/{{ VG_NAME }}-{{ LV_NAME }}"
+#        state: present
+#
+#    - name: Create mount point {{ MOUNT_PATH }}
+#      file:
+#        path: "{{ MOUNT_PATH }}"
+#        owner: root
+#        group: root
+#        state: directory
+#        mode: '0755'
+#
+#    - name: mount {{DISK_NAME}}/{{LV_NAME}}
+#      mount:
+#        src: "/dev/mapper/{{ VG_NAME }}-{{ LV_NAME }}"
+#        path: "{{ MOUNT_PATH }}"
+#        fstype: xfs
+#        opts: defaults,noatime
+#        state: mounted
 
     when: pvs_sdb.rc != 0
 
