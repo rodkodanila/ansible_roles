@@ -1,0 +1,61 @@
+---
+- hosts: master1
+  tasks:
+  - name: Gather service facts
+    service_facts:
+
+#  - name: List all gathered services
+#    debug:
+#        var: ansible_facts.services
+
+  - name: print
+    debug:
+      var: groups['all'] | length
+  - name: Get the number of hosts in the 'all' group
+    set_fact:
+      all_group_length: "{{ groups['all'] | length }}"
+
+  - name: Get glusterfs cluster nodes
+    shell: gluster pool list | sed '1d' | wc -l
+    register: gluster_nodes
+
+  - name: Convert gluster_nodes to integer
+    set_fact:
+      gluster_nodes: "{{ gluster_nodes.stdout }}"
+
+#  - name: Gather IP addresses and hostnames
+#    set_fact:
+#      host_entries: "{{ host_entries | default([]) + [item] }}"
+#    with_items: "{{ groups['all'] }}"
+#    vars:
+#      item: "{{ hostvars[item]['ansible_default_ipv4']['address'] }} {{ item }}"
+  - name: Init cluster
+    shell: "gluster peer probe {{ hostvars[item]['ansible_host'] }}"
+    with_items: "{{ groups['all'] }}"
+    when: ansible_facts.services['glusterd.service'].state == "running" and gluster_nodes != all_group_length
+
+
+#  - name: print
+#    debug:
+#      var: host_entries
+
+    #  - name: Initialize valid_ips
+#    set_fact:
+#        valid_ips: []
+#    delegate_to: master1
+
+#  - name: Add IP to list if conditions are met
+#    set_fact:
+#      valid_ips: "{{ hostvars['master1'].valid_ips | default([]) + [ansible_default_ipv4.address] }}"
+#    when: ansible_facts.services['glusterd.service'].state == "running" and gluster_nodes == "1" and inventory_hostname != "master1"
+
+
+
+#  - name: Show eligible IPs
+#    debug:
+#      msg: "Eligible IPs: {{ hostvars['master1'].valid_ips }}"
+#    run_once: true
+#
+#  - name: print
+#    debug:
+#      var: gluster_nodes

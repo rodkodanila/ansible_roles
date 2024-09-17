@@ -1,24 +1,32 @@
 ---
 # setup requirements for k8s
-- include: 'k8s/1_setup_k8s_requirements.yaml'
+#- include: 'k8s/1_setup_k8s_requirements.yaml'
 
 # install and configure keepalived
-- include: 'keepalived/1_install_keepalived.yaml'
+#- include: 'keepalived/1_install_keepalived.yaml'
 
 # install haproxy
-- include: 'haproxy/1_install_haproxy.yaml'
+#- include: 'haproxy/1_install_haproxy.yaml'
 
 # init first master node
-- include: 'k8s/2_init_first_master.yaml'
+#- include: 'k8s/2_init_first_master.yaml'
 
 # generate cert and string for connetcion
-- include: 'k8s/3_generate_cert_and_init.yaml'
+#- include: 'k8s/3_generate_cert_and_init.yaml'
 
 # add other controls
-- include: 'k8s/4_init_other_masters.yaml'
+#- include: 'k8s/4_init_other_masters.yaml'
 
 # add workers
-- include: 'k8s/5_init_workers.yaml'
+#- include: 'k8s/5_init_workers.yaml'
 
 # add CNI
-- include: 'k8s/6_init_network_provider.yaml'
+#- include: 'k8s/6_init_network_provider.yaml'
+
+# configure glusterfs
+#- include: 'glusterfs/1_install_glusterfs.yaml'
+#- include: 'glusterfs/2_create_bricks.yaml'
+#- include: 'glusterfs/3_init_glusterd_cluster.yaml'
+
+# configure heketi
+- include: 'glusterfs/4_install_heketi.yaml'

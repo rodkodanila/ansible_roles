@@ -1,0 +1,41 @@
+---
+- hosts: master1
+  tasks:
+#  - name: Add contents of id_rsa.pub to authorized_keys
+#    lineinfile:
+#      path: ~/.ssh/authorized_keys
+#      line: "{{ lookup('file', 'files/heketi.pub') }}"
+#      state: present
+#      create: yes
+  - name: Create group heketi
+    group:
+        name: heketi
+        state: present
+
+  - name: Create user heketi
+    user:
+      name: heketi
+      group: heketi
+      shell: /sbin/nologin
+      state: present
+      home: /home/heketi
+      create_home: no
+  - name: Create /etc/heketi
+    file:
+     path: /etc/heketi
+     owner: heketi
+     group: heketi
+     state: directory
+     mode: '0755'
+
+  - name: install heketi-cli
+    shell: |
+      wget https://github.com/heketi/heketi/releases/download/v10.4.0/heketi-client-v10.4.0-release-10.linux.amd64.tar.gz
+      for i in `ls | grep heketi | grep .tar.gz`; do tar xvf $i; done
+      cp ./heketi-client/bin/heketi-cli /usr/local/bin
+      chmod +x /usr/local/bin/heketi-cli
+      rm -r heketi*.tar.gz
+  - name: copy topology.json
+    template:
+      src: files/topology.json.j2
+      dest: /etc/heketi/topology.json

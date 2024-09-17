@@ -1,0 +1,72 @@
+{
+    "clusters": [
+        {
+            "nodes": [
+                {
+                    "node": {
+                        "hostnames": {
+                            "manage": [
+                                "master1"
+                            ],
+                            "storage": [
+                                {{ hostvars['master1']['ansible_host'] }}
+                            ]
+                        },
+                        "zone": 1
+                    },
+                    "devices": [
+                        "/dev/vdb"
+                    ]
+                },
+                {
+                    "node": {
+                        "hostnames": {
+                            "manage": [
+                                "master2"
+                            ],
+                            "storage": [
+                                {{ hostvars['master2']['ansible_host'] }}
+                            ]
+                        },
+                        "zone": 1
+                    },
+                    "devices": [
+                        "/dev/vdb"
+                    ]
+                },
+                {
+                    "node": {
+                        "hostnames": {
+                            "manage": [
+                                "master3"
+                            ],
+                            "storage": [
+                                {{ hostvars['master3']['ansible_host'] }}
+                            ]
+                        },
+                        "zone": 1
+                    },
+                    "devices": [
+                        "/dev/vdb"
+                    ]
+                },
+                {
+                    "node": {
+                        "hostnames": {
+                            "manage": [
+                                "worker1"
+                            ],
+                            "storage": [
+                                {{ hostvars['worker1']['ansible_host'] }}
+                            ]
+                        },
+                        "zone": 1
+                    },
+                    "devices": [
+                        "/dev/vdb"
+                    ]
+                }
+            ]
+        }
+    ]
+}

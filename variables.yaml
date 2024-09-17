@@ -3,3 +3,12 @@ LB_IP: "192.168.138.200"
 LB_PORT: "7443"
 
 POD_NETWORK: "10.10.0.0/16"
+
+
+# for glusterfs
+DISK_NAME: "/dev/sdb"
+LV_NAME: "lv_gluster"
+VG_NAME: "vg_gluster"
+MOUNT_PATH: "/glusterfs_data"
+
+# heketi

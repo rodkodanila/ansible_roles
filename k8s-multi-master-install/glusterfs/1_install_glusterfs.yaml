@@ -1,0 +1,37 @@
+---
+- hosts: all
+
+  tasks:
+
+  - name: Install dependencies
+    apt:
+      name:
+        - gnupg2
+        - apt-transport-https
+        - ca-certificates
+      state: present
+
+  - name: Add repository pubkey for GlusterFS
+    apt_key:
+      url: 'https://download.gluster.org/pub/gluster/glusterfs/9/rsa.pub'
+      state: present
+      keyring: /etc/apt/trusted.gpg.d/gluster.gpg
+
+  - name: Add debian repo for GlusterFS
+    apt_repository:
+      repo: "deb [signed-by=/etc/apt/trusted.gpg.d/gluster.gpg] https://download.gluster.org/pub/gluster/glusterfs/LATEST/Debian/12/amd64/apt bookworm main"
+      state: present
+      filename: gluster
+
+  - name: Install glusterfs
+    apt:
+      name:
+        - glusterfs-server
+        - glusterfs-client
+      state: present
+
+  - name: Start/Enable glusterd
+    service:
+      name: glusterd
+      state: started
+      enabled: yes

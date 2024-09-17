@@ -1,0 +1,66 @@
+---
+- hosts: all
+  vars_files:
+    - ../../variables.yaml
+  tasks:
+
+  - name: Install LVM2 package
+    apt:
+      name:
+      - lvm2
+      - parted
+      state: present
+      update_cache: yes
+
+  - name: Check if {{ DISK_NAME }} is already a physical volume
+    command: pvs {{ DISK_NAME }}
+    register: pvs_sdb
+    ignore_errors: true
+
+  - name: Configure disk for glusterfs
+    block:
+#    - name: Prepare for glusters pvs partition
+#      parted:
+#        device: {{DISK_NAME}}
+#        number: 1
+#        state: present
+#        flags: [ lvm ]
+#        part_start: 0%
+#        part_end: 100%
+
+    - name: Create volume group
+      lvg:
+        vg: "{{ VG_NAME }}"
+        pvs: "{{ DISK_NAME }}"
+
+    - name: Create logic lv-k8s
+      lvol:
+        vg: "{{ VG_NAME }}"
+        lv: "{{ LV_NAME }}"
+        size: 100%VG
+        state: present
+
+    - name: Create xfs {{DISK_NAME}}/{{LV_NAME}}
+      filesystem:
+        fstype: xfs
+        dev: "/dev/mapper/{{ VG_NAME }}-{{ LV_NAME }}"
+        state: present
+
+    - name: Create mount point {{ MOUNT_PATH }}
+      file:
+        path: "{{ MOUNT_PATH }}"
+        owner: root
+        group: root
+        state: directory
+        mode: '0755'
+
+    - name: mount {{DISK_NAME}}/{{LV_NAME}}
+      mount:
+        src: "/dev/mapper/{{ VG_NAME }}-{{ LV_NAME }}"
+        path: "{{ MOUNT_PATH }}"
+        fstype: xfs
+        opts: defaults,noatime
+        state: mounted
+
+    when: pvs_sdb.rc != 0
+
