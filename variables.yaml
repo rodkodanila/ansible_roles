@@ -12,6 +12,8 @@ VG_NAME: "vg_gluster"
 MOUNT_PATH: "/glusterfs_data"
 
 # heketi
+HEKETI_RSA_KEY_PRIVATE_PATH: "/etc/heketi/heketi-key-test"
+
 HEKETI_ADMIN_USER: "admin"
 HEKETI_ADMIN_SECRET: "dGFH32DSfgsf2cvD"
 

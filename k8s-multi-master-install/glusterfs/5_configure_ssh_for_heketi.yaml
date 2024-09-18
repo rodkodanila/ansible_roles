@@ -1,0 +1,65 @@
+---
+- hosts: all
+  vars_files:
+    - ../../variables.yaml
+  tasks:
+
+  - name: Configure ssh keys for heketi
+    block:
+    - name: Generate key on master
+      openssh_keypair:
+        path: "{{ HEKETI_RSA_KEY_PRIVATE_PATH }}"
+        type: rsa
+        state: present
+      when: inventory_hostname == "master1"
+
+    - name: Set owner and group of the private key
+      file:
+          path: "{{ HEKETI_RSA_KEY_PRIVATE_PATH }}"
+          owner: heketi
+          group: heketi
+          mode: 0400
+      when: inventory_hostname == "master1"
+
+    - name: Read public key
+      slurp:
+          src: "{{ HEKETI_RSA_KEY_PRIVATE_PATH }}.pub"
+      register: public_key
+      when: inventory_hostname == "master1"
+
+    - name: Set fact with public key value
+      set_fact:
+          public_key_value: "{{ public_key.content | b64decode }}"
+      when: inventory_hostname == "master1"
+
+    - name: Print
+      debug:
+        var: hostvars['master1'].public_key_value
+
+
+    - name: Add contents of id_rsa.pub to authorized_keys
+      lineinfile:
+          path: ~/.ssh/authorized_keys
+          line: "{{ hostvars['master1'].public_key_value }}"
+          #      state: present
+          create: yes
+
+    - name: Add contents of id_rsa.pub to authorized_keys
+      lineinfile:
+         path: /etc/ssh/sshd_config
+         line: "PubkeyAcceptedKeyTypes=+ssh-rsa"
+         state: present
+         create: yes
+
+    - name: Install LVM2 package
+      apt:
+         name:
+           - lvm2
+         state: present
+         update_cache: yes
+
+    - name: restart ssh
+      service:
+        name: sshd
+        state: restarted
+    when: not hostvars['master1'].hekety_ready

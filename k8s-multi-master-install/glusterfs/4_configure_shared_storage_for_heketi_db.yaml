@@ -1,0 +1,7 @@
+---
+- hosts: masters
+  tasks:
+    - name:
+
+
+  when:  not hostvars[inventory_hostname].hekety_ready

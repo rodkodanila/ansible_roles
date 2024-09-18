@@ -1,0 +1,56 @@
+---
+- hosts: all
+  vars_files:
+    - ../../variables.yaml
+  tasks:
+  - name: Generate common ssh keys for heketi on masters
+    block:
+    - name: Configure ssh keys for heketi
+      block:
+      - name: Do all on master1
+        block:
+        - name: Generate key on master
+          openssh_keypair:
+            path: "{{ HEKETI_RSA_KEY_PRIVATE_PATH }}"
+            type: rsa
+            state: present
+
+        - name: Read private key {{ HEKETI_RSA_KEY_PRIVATE_PATH }}
+          slurp:
+            src: "{{ HEKETI_RSA_KEY_PRIVATE_PATH }}"
+          register: private_key
+
+        - name: Set fact with private key value
+          set_fact:
+            private_key_value: "{{ private_key.content | b64decode }}"
+
+        - name: Read public key {{ HEKETI_RSA_KEY_PRIVATE_PATH }}.pub
+          slurp:
+            src: "{{ HEKETI_RSA_KEY_PRIVATE_PATH }}.pub"
+          register: public_key
+
+        - name: Set fact with public key value
+          set_fact:
+            public_key_value: "{{ public_key.content | b64decode }}"
+
+        when: inventory_hostname == "master1"
+
+    - name: Copy on other master nodes private_key
+      lineinfile:
+        path: "{{ HEKETI_RSA_KEY_PRIVATE_PATH }}"
+        line: "{{ hostvars['master1'].private_key_value }}"
+        #      state: present
+        create: yes
+        mode: '0400'
+      when: "'masters' in group_names"
+
+    - name: Add contents of id_rsa.pub to authorized_keys
+      lineinfile:
+        path: ~/.ssh/authorized_keys
+        line: "{{ hostvars['master1'].public_key_value }}"
+        #      state: present
+        create: yes
+
+
+
+#  when: not hostvars[inventory_hostname].hekety_ready

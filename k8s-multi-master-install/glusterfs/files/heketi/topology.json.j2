@@ -6,7 +6,7 @@
                     "node": {
                         "hostnames": {
                             "manage": [
-                                "master1"
+                                "{{ hostvars['master1']['ansible_host'] }}"
                             ],
                             "storage": [
                                 "{{ hostvars['master1']['ansible_host'] }}"
@@ -22,7 +22,7 @@
                     "node": {
                         "hostnames": {
                             "manage": [
-                                "master2"
+                                "{{ hostvars['master2']['ansible_host'] }}"
                             ],
                             "storage": [
                                 "{{ hostvars['master2']['ansible_host'] }}"
@@ -54,7 +54,7 @@
                     "node": {
                         "hostnames": {
                             "manage": [
-                                "worker1"
+                                "{{ hostvars['worker1']['ansible_host'] }}"
                             ],
                             "storage": [
                                 "{{ hostvars['worker1']['ansible_host'] }}"

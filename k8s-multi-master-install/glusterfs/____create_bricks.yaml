@@ -8,7 +8,6 @@
     apt:
       name:
       - lvm2
-      - parted
       state: present
       update_cache: yes
 

@@ -31,7 +31,7 @@
 
     "sshexec": {
       "rebalance_on_expansion": true,
-      "keyfile": "/etc/heketi/heketi",
+      "keyfile": "{{ HEKETI_RSA_KEY_PRIVATE_PATH }}",
       "fstab": "/etc/fstab",
       "port": "22",
       "user": "root",

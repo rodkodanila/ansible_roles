@@ -1,0 +1,26 @@
+---
+- hosts: master1
+
+  tasks:
+  - name: Init heketi cluster
+    block:
+    - name: Enable and start service
+      systemd:
+        name: heketi.service
+        state: started
+        enabled: yes
+
+    - name: load topology
+      command: "heketi-cli topology load  --json=/etc/heketi/topology.json"
+      register: topology_load_output
+
+
+
+    when: not hostvars['master1'].hekety_ready
+
+  - name: cluster id
+    command: "heketi-cli cluster list"
+    register: heketi_cluster_list
+  - name: Set fact with cluster ID
+    set_fact:
+      cluster_id: "{{ heketi_cluster_list.stdout.split(':')[2].split(' ')[0].strip() }}"
