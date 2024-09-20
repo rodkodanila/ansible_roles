@@ -42,6 +42,8 @@
         #      state: present
         create: yes
         mode: '0400'
+        owner: heketi
+        group: heketi
       when: "'masters' in group_names"
 
     - name: Add contents of id_rsa.pub to authorized_keys
@@ -51,6 +53,23 @@
         #      state: present
         create: yes
 
+    - name: Add contents of id_rsa.pub to authorized_keys
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        line: "PubkeyAcceptedKeyTypes=+ssh-rsa"
+        state: present
+        create: yes
 
+    - name: restart ssh
+      service:
+        name: sshd
+        state: restarted
 
-#  when: not hostvars[inventory_hostname].hekety_ready
+    - name: Install LVM2 package
+      apt:
+        name:
+          - lvm2
+        state: present
+        update_cache: yes
+
+    when: not hostvars['master1'].heketi_ready

@@ -18,6 +18,49 @@
       line: 'export PATH=$PATH:/sbin'
       state: present
       create: yes
+  - name: k alias
+    lineinfile:
+      path: /etc/profile
+      line: 'alias k="kubectl"'
+      state: present
+      create: yes
+  - name: kgp alias
+    lineinfile:
+      path: /etc/profile
+      line: 'alias kgp="kubectl get pods"'
+      state: present
+      create: yes
+
+  - name: kgpvc alias
+    lineinfile:
+      path: /etc/profile
+      line: 'alias kgpvc="kubectl get pvc"'
+      state: present
+      create: yes
+  - name: kgpv alias
+    lineinfile:
+      path: /etc/profile
+      line: 'alias kgpvc="kubectl get pv"'
+      state: present
+      create: yes
+  - name: kgsc alias
+    lineinfile:
+      path: /etc/profile
+      line: 'alias kgsc="kubectl get sc"'
+      state: present
+      create: yes
+  - name: ll alias
+    lineinfile:
+      path: /etc/profile
+      line: 'alias ll="ls -la"'
+      state: present
+      create: yes
+  - name: l alias
+    lineinfile:
+      path: /etc/profile
+      line: 'alias l="ls -la"'
+      state: present
+      create: yes
 
   - name: Create containerd.conf file
     ansible.builtin.copy:
@@ -83,13 +126,13 @@
 
   - name: Download Kubernetes GPG key
     apt_key:
-        url: https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key  # Replace with actual key URL if available
+        url: "{{ K8S_APT_KEY }}"
         state: present
-        keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+        keyring: "{{ K8S_KEY_PATH }}"
 
   - name: Add Kubernetes APT repository
     apt_repository:
-      repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /"
+      repo: "{{ K8S_REPO }}"
       state: present
     notify:
     - Update APT package index

@@ -26,6 +26,6 @@
     when: kubestatus.stdout == "1"
 
   - name: Remove taint from control-node
-    shell: "kubectl taint nodes --all node-role.kubernetes.io/control-plane-"
-    when: kubestatus.stdout == "1"
-    run_once: true
+    shell: "kubectl taint nodes --all node-role.kubernetes.io/control-plane:NoSchedule-"
+    when: kubestatus.stdout == "1" and inventory_hostname != "master1"
+    ignore_errors: true

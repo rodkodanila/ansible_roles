@@ -1,3 +1,14 @@
 ---
 - hosts: master1
+  vars_files:
+    - ../../variables.yaml
   tasks:
+  - name: Copy gluster-secret
+    template:
+      src: files/k8s_heketi/gluster-secret.yaml.j2
+      dest: /root/gluster-secret.yaml
+
+  - name: Copy gluster-sc
+    template:
+      src: files/k8s_heketi/gluster-sc.yaml.j2
+      dest: /root/gluster-sc.yaml

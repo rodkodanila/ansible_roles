@@ -22,19 +22,17 @@
 
 # add CNI
 #- include: 'k8s/6_init_network_provider.yaml'
+#- include: 'k8s/7_install_helm.yaml'
 
-# configure glusterfs
+- include: 'openebs/1_configure_linux.yaml'
+
+## configure glusterfs
 #- include: 'glusterfs/1_install_glusterfs.yaml'
-#- include: 'glusterfs/2_create_bricks.yaml'
 #- include: 'glusterfs/2_init_glusterd_cluster.yaml'
-
-# configure heketi
-#- include: 'glusterfs/4_install_heketi.yaml'
-#- include: 'glusterfs/5_configure_ssh_for_heketi.yaml'
-
-#- include: 'glusterfs/3_configure_master_for_heketi.yaml'
-#- include: 'glusterfs/4_configure_ssh_for_heketi.yaml'
-#- include: 'glusterfs/5_configure_heketi.yaml'
-
+#
+## configure heketi
 #- include: 'glusterfs/3_create_heketi_user.yaml'
-- include: 'glusterfs/5_1_create_ssh_for_heketi_share_with_masters.yaml'
+#- include: 'glusterfs/4_configure_shared_storage_for_heketi_db.yaml'
+#- include: 'glusterfs/5_create_ssh_for_heketi_share_with_masters.yaml'
+#- include: 'glusterfs/6_configure_heketi.yaml'
+#- include: 'glusterfs/7_add_storage_to_k8s.yaml'

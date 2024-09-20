@@ -1,0 +1,56 @@
+---
+- hosts: all
+  tasks:
+  - name: Check if OpenEBS is installed
+    shell: |
+      kubectl get ns openebs
+    register: openebs_check
+    ignore_errors: true
+  - name: install openebs
+    block:
+    - name: Configure Pages Size
+      shell: | 
+        echo 1024 |  tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+        echo vm.nr_hugepages = 1024 |  tee -a /etc/sysctl.conf
+
+    - name: Add labels on nodes
+      shell: kubectl label node --all openebs.io/engine=mayastor
+      when: inventory_hostname == "master1"
+
+    - name: Install nvme-tcp
+      apt:
+        name: nvme-cli
+        state: latest
+
+    - name: Enable Kernel Module nvme-tcp
+      modprobe:
+        name: nvme-tcp
+        state: present
+
+
+    - name: Install LVM2 package
+      apt:
+        name:
+          - lvm2
+        state: present
+        update_cache: yes
+
+    - name: Install openebs
+      shell: |
+        helm repo add openebs https://openebs.github.io/openebs
+        helm repo update
+        helm install openebs \
+        --namespace openebs \
+        openebs/openebs \
+        --create-namespace
+    when: openebs_check.rc != 0
+
+
+
+
+  
+
+  - name: restart kubelet
+    service:
+      name: kubelet
+      state: restarted

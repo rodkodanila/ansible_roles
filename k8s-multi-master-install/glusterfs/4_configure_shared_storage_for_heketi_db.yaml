@@ -1,7 +1,57 @@
 ---
 - hosts: masters
+  vars_files:
+    - ../../variables.yaml
   tasks:
-    - name:
+  - name: Configure common share for db
+    block:
+    - name: Create mount directory
+      file:
+          path: "{{ VOLUME_PATH_FOR_BRICKS }}"
+          state: directory
+          mode: '0755'
+          owner: heketi
+          group: heketi
+    - name: Configure volume
+      block:
+      - name: Create volume
+        shell: |
+          gluster volume create {{ VOLUME_NAME_FOR_HEKETI_DB }}  replica {{REPLICA_COUNT}} \
+          {{hostvars['master1']['ansible_host']}}:{{ VOLUME_PATH_FOR_BRICKS }} \
+          {{hostvars['master2']['ansible_host']}}:{{ VOLUME_PATH_FOR_BRICKS }} \
+          {{hostvars['master3']['ansible_host']}}:{{ VOLUME_PATH_FOR_BRICKS }} \
+          force
+        ignore_errors: yes
+      - name: start volume
+        shell: gluster volume  start {{ VOLUME_NAME_FOR_HEKETI_DB }}
 
+      - name: Enable quote for volume
+        shell: gluster volume quota {{ VOLUME_NAME_FOR_HEKETI_DB }} enable
 
-  when:  not hostvars[inventory_hostname].hekety_ready
+      - name: Add quote for volume
+        shell: gluster volume quota {{ VOLUME_NAME_FOR_HEKETI_DB }} limit-usage / {{ VOLUME_MAX_SIZE }}
+
+      - name: Check installed quotes
+        shell: gluster volume quota {{ VOLUME_NAME_FOR_HEKETI_DB }} list
+        register: quote_list
+
+      - name: Print quote
+        debug:
+          var: quote_list
+
+      when: inventory_hostname == "master1"
+
+    - name: Mount the GlusterFS volume
+      mount:
+          path: "{{ HEKETI_DB_FOLDER }}"
+          src: "{{ SOURCE_FOR_GLUSTERFS_MOUNT }}"
+          fstype: glusterfs
+          opts: defaults
+          state: mounted
+
+    - name: Add mount to /etc/fstab
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        line: "{{ SOURCE_FOR_GLUSTERFS_MOUNT }}   {{ HEKETI_DB_FOLDER }} glusterfs defaults,_netdev 0 0"
+        create: yes
+    when:  not hostvars[inventory_hostname].heketi_ready

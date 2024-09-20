@@ -5,11 +5,21 @@
   tasks:
   - name: Check if file exists
     stat:
-      path: "/var/lib/heketi/heketi.db"
+      path: "{{ HEKETI_DB_FOLDER }}"
     register: heketi_db_file
   - name: set fact heketi status
     set_fact:
-      hekety_ready: heketi_db_file.stat.exists
+      heketi_ready: "{{ heketi_db_file.stat.exists }}"
+
+  - name: Print directory exists message
+    debug:
+      msg: "The directory exists."
+    when: heketi_ready
+
+  - name: Print directory does not exist message
+    debug:
+      msg: "The directory does not exist."
+    when: not heketi_ready
 
   - name: Create user and folders for heketi
     block:
@@ -50,6 +60,14 @@
         owner: heketi
         group: heketi
         state: directory
+        mode: '0755'
+
+    - name: copy heketi
+      copy:
+        src: files/heketi/bin/heketi
+        dest: /usr/local/bin/heketi
+        owner: heketi
+        group: heketi
         mode: '0755'
 
     - name: copy heketi-cli
@@ -96,4 +114,4 @@
         - { key: "HEKETI_CLI_KEY", value: "{{ HEKETI_ADMIN_SECRET }}" }
         - { key: "HEKETI_CLI_SERVER", value: "http://{{ LB_IP }}:8080" }
 
-    when: not hostvars[inventory_hostname].hekety_ready
+    when: not hostvars[inventory_hostname].heketi_ready

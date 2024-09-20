@@ -1,5 +1,5 @@
 ---
-- hosts: master1
+- hosts: masters
 
   tasks:
   - name: Init heketi cluster
@@ -9,18 +9,35 @@
         name: heketi.service
         state: started
         enabled: yes
+    - name: Restart service
+      systemd:
+        name: heketi.service
+        state: restarted
 
     - name: load topology
       command: "heketi-cli topology load  --json=/etc/heketi/topology.json"
       register: topology_load_output
 
+    when: not hostvars['master1'].heketi_ready and inventory_hostname == "master1"
 
-
-    when: not hostvars['master1'].hekety_ready
+  - name: Enable and start service
+    systemd:
+      name: heketi.service
+      state: started
+      enabled: yes
+    when: inventory_hostname != "master1"
+  - name: Restart service
+    systemd:
+      name: heketi.service
+      state: restarted
+    when: inventory_hostname != "master1"
 
   - name: cluster id
     command: "heketi-cli cluster list"
     register: heketi_cluster_list
+    when: inventory_hostname == "master1"
+
   - name: Set fact with cluster ID
     set_fact:
       cluster_id: "{{ heketi_cluster_list.stdout.split(':')[2].split(' ')[0].strip() }}"
+    when: inventory_hostname == "master1"

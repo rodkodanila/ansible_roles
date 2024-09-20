@@ -1,0 +1,20 @@
+---
+- hosts: master1
+  tasks:
+  - name: Check if /usr/local/bin/helm exist
+    stat:
+      path: /usr/local/bin/helm
+    register: helm_bin
+  - name: install Helm
+    block:
+    - name: install git
+      apt:
+        name: git
+        state: latest
+    - name: Download/Install Helm
+      shell: |
+        curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+        chmod +x get_helm.sh
+        ./get_helm.sh
+        rm -f get_helm.sh
+    when: not helm_bin.stat.exists

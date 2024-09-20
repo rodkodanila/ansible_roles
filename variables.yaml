@@ -1,21 +1,47 @@
 ---
+#########################  KUBERNETES ################################
+
 LB_IP: "192.168.138.200"
 LB_PORT: "7443"
-
 POD_NETWORK: "10.10.0.0/16"
 
+######################################################################
 
-# for glusterfs
+#LV_NAME: "lv_gluster"
+#VG_NAME: "vg_gluster"
+
+
+######################### HEKETI + GLUSTERFS ##########################
 DISK_NAME: "/dev/sdb"
-LV_NAME: "lv_gluster"
-VG_NAME: "vg_gluster"
-MOUNT_PATH: "/glusterfs_data"
 
-# heketi
-HEKETI_RSA_KEY_PRIVATE_PATH: "/etc/heketi/heketi-key-test"
+HEKETI_RSA_KEY_PRIVATE_PATH: "/etc/heketi/heketi-key"
 
 HEKETI_ADMIN_USER: "admin"
 HEKETI_ADMIN_SECRET: "dGFH32DSfgsf2cvD"
-
+HEKETI_DB_PATH: "{{ HEKETI_DB_FOLDER }}/heketi.db"
+HEKETI_DB_FOLDER: "/var/lib/heketi"
 HEKETI_USER: "user"
 HEKETI_SECRET: "sd4y5SFD2a5szZC2"
+
+VOLUME_NAME_FOR_HEKETI_DB: "HEKETI_DB_VOLUME"
+VOLUME_PATH_FOR_BRICKS: "/heketi_db_brick"
+SOURCE_FOR_GLUSTERFS_MOUNT: "{{ hostvars['master1']['ansible_host'] }}:{{ VOLUME_NAME_FOR_HEKETI_DB }},{{ hostvars['master2']['ansible_host'] }}:{{ VOLUME_NAME_FOR_HEKETI_DB }},{{ hostvars['master3']['ansible_host'] }}:{{ VOLUME_NAME_FOR_HEKETI_DB }}"
+VOLUME_MAX_SIZE: "2GB"
+REPLICA_COUNT: "3"
+#######################################################################
+
+
+################################ REPO #################################
+
+# GLUSTERFS
+GLUSTERFS_KEY_PATH: "/etc/apt/trusted.gpg.d/gluster.gpg"
+GLUSTERFS_APT_KEY: "https://download.gluster.org/pub/gluster/glusterfs/9/rsa.pub"
+GLUSTERFS_REPO: "deb [signed-by={{GLUSTERFS_KEY_PATH}}] https://download.gluster.org/pub/gluster/glusterfs/LATEST/Debian/12/amd64/apt bookworm main"
+
+# KUBERNETES
+K8S_KEY_PATH: "/etc/apt/keyrings/kubernetes-apt-keyring.gpg"
+K8S_APT_KEY: "https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key"
+K8S_REPO: "deb [signed-by={{K8S_KEY_PATH}}] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /"
+#K8S_REPO: "deb [signed-by={{K8S_KEY_PATH}}] https://apt.kubernetes.io/ kubernetes-xenial main"
+#K8S_APT_KEY: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
+#######################################################################
