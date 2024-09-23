@@ -37,4 +37,8 @@
       file:
         path: /usr/bin/calicoctl
         mode: "0755"
+
+    - name: Add a 5-minute delay (Time for network CNI Setup)
+      pause:
+        minutes: 5
     when: not calico_config.stat.exists

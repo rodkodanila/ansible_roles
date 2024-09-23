@@ -6,6 +6,13 @@
       kubectl get ns openebs
     register: openebs_check
     ignore_errors: true
+    when: inventory_hostname == "master1"
+  - name: Set fact for openebs_check
+    set_fact:
+      openebs_check_status: "{{ openebs_check.rc }}"
+    when: inventory_hostname == "master1"
+  - debug:
+      var: hostvars['master1'].openebs_check_status
   - name: install openebs
     block:
     - name: Configure Pages Size
@@ -35,6 +42,10 @@
         state: present
         update_cache: yes
 
+    - name: reboot hosts
+      reboot:
+
+
     - name: Install openebs
       shell: |
         helm repo add openebs https://openebs.github.io/openebs
@@ -43,14 +54,6 @@
         --namespace openebs \
         openebs/openebs \
         --create-namespace
-    when: openebs_check.rc != 0
-
-
-
-
-  
-
-  - name: restart kubelet
-    service:
-      name: kubelet
-      state: restarted
+      when: inventory_hostname == "master1"
+      ignore_errors: true
+    when: hostvars['master1'].openebs_check_status != "0"

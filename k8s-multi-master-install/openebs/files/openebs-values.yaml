@@ -17,7 +17,7 @@ zfs-localpv:
   enabled: false
   crds:
     zfsLocalPv:
-      enabled: true
+      enabled: false
     csi:
       volumeSnapshots:
         enabled: false
@@ -30,7 +30,7 @@ lvm-localpv:
       enabled: true
     csi:
       volumeSnapshots:
-        enabled: false
+        enabled: true
 
 # Refer to https://github.com/openebs/mayastor-extensions/blob/v2.7.0/chart/values.yaml for complete set of values.
 mayastor:

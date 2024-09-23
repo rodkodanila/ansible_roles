@@ -11,7 +11,7 @@ spec:
 apiVersion: "openebs.io/v1beta2"
 kind: DiskPool
 metadata:
-  name: pool-on-node-1
+  name: pool-on-node-2
   namespace: openebs
 spec:
   node: node-2
@@ -20,7 +20,7 @@ spec:
 apiVersion: "openebs.io/v1beta2"
 kind: DiskPool
 metadata:
-  name: pool-on-node-1
+  name: pool-on-node-3
   namespace: openebs
 spec:
   node: node-3
@@ -29,8 +29,8 @@ spec:
 apiVersion: "openebs.io/v1beta2"
 kind: DiskPool
 metadata:
-  name: pool-on-node-1
+  name: pool-on-node-4
   namespace: openebs
 spec:
   node: node-4
-  disks: ["/dev/sda"]
+  disks: ["/dev/sdb"]

@@ -18,3 +18,4 @@
         ./get_helm.sh
         rm -f get_helm.sh
     when: not helm_bin.stat.exists
+

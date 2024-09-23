@@ -1,0 +1,33 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: test-nginx-replicated-storage
+spec:
+  storageClassName: openebs-replicated-sc
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 0.1G
+---
+kind: Pod
+apiVersion: v1
+metadata:
+  name: nginx-test-pvc
+spec:
+  nodeSelector:
+    openebs.io/engine: mayastor
+  volumes:
+    - name: ms-volume
+      persistentVolumeClaim:
+        claimName: test-nginx-replicated-storage
+  containers:
+    - name: nginx-test-pvc
+      image: nginx:latest
+      args:
+        - sleep
+        - "1000000"
+      volumeMounts:
+        - mountPath: "/volume"
+          name: ms-volume

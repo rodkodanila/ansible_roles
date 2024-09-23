@@ -1,0 +1,29 @@
+---
+- hosts: master1
+  tasks:
+  - name: Configure OpenEBS
+    block:
+    - name: Copy .yaml for disk pools
+      copy:
+        src: files/create_disk_pool.yaml
+        dest: /root/create_disk_pool.yaml
+    - name: Create disk pool yaml
+      command: kubectl apply -f /root/create_disk_pool.yaml
+    - name: Add a 3-minute delay (Time for disk pool init)
+      pause:
+        minutes: 3
+    - name: Copy .yaml replicated SC
+      copy:
+        src: files/replicated_sc.yaml
+        dest: /root/replicated_sc.yaml
+    - name: Create replicated sc yaml
+      command: kubectl apply -f /root/replicated_sc.yaml
+
+    - name: Copy pvc config .yaml
+      copy:
+        src: files/test-app.yaml
+        dest: /root/test-app.yaml
+    - name: Create pod with pvc
+      command: kubectl apply -f /root/test-app.yaml
+
+    when: hostvars['master1'].openebs_check_status != "0"
