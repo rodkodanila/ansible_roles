@@ -23,9 +23,9 @@
 # add CNI
 - include: 'k8s/6_init_network_provider.yaml'
 - include: 'k8s/7_install_helm.yaml'
-
-- include: 'openebs/1_configure_linux.yaml'
-- include: 'openebs/2_configure_openebs.yaml'
+- include: 'k8s/8_save_cert_localy.yaml'
+#- include: 'openebs/1_configure_linux.yaml'
+#- include: 'openebs/2_configure_openebs.yaml'
 
 
 ## configure glusterfs

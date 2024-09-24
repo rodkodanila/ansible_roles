@@ -5,3 +5,4 @@ master3 ansible_host=192.168.138.151
 
 [workers]
 worker1 ansible_host=192.168.138.149
+worker2 ansible_host=192.168.138.245

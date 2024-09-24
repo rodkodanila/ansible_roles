@@ -4,9 +4,11 @@
   tasks:
 
   - name: Check if Kubelet is running
-    shell: netstat -tulpn | grep kubelet
-    register: kubelet_status
-    ignore_errors: true
+    shell: |
+      netstat -tulpn | grep kubelet > /dev/null 2>&1;
+      STATUS=$?
+      echo ${STATUS}
+    register: kubestatus
 
   - name: Print kubestat
     debug:
@@ -14,4 +16,4 @@
 
   - name: Join the extra masters to cluster
     shell: "{{ hostvars['master1'].kube_join_command }} "
-    when: kubelet_status.stdout == ""
+    when: kubestatus.stdout == "1"

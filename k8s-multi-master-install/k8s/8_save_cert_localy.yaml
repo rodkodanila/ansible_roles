@@ -1,0 +1,7 @@
+---
+- hosts: master1
+  tasks:
+  - name: Save admin.conf
+    fetch:
+      src: /etc/kubernetes/admin.conf
+      dest: files/admin.conf
