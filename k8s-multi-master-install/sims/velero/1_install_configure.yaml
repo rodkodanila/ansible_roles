@@ -1,0 +1,45 @@
+---
+- hosts: masters
+  tasks:
+
+  - name: Check if install script exists locally
+    stat:
+      path: /usr/bin/velero
+    register: install_script
+
+  - name: Install velero/restic
+    when: not install_script.stat.exists
+    block:
+    - name: Copy velero binary
+      copy:
+        src: files/bin/velero
+        dest: /usr/bin/velero
+        mode: 600
+
+    - name: Copy restic binary
+      copy:
+        src: files/bin/restic
+        dest: /usr/bin/restic
+        mode: 600
+
+    - name: Configure Velero
+      block:
+      - name: Copy velero creds
+        copy:
+          src: files/velero-creds
+          dest: /root/velero-creds
+      - name: Init velero
+        shell: |
+          /usr/bin/velero install \
+            --provider aws --use-volume-snapshots=true \
+            --plugins velero/velero-plugin-for-aws:v1.2.1 \
+            --use-node-agent --default-volumes-to-fs-backup \
+            --bucket velero-kub-new --secret-file /root/velero-creds \
+            --backup-location-config region=us-east-1,s3ForcePathStyle="true",s3Url=http://minio.sims:9001 \
+            --snapshot-location-config region=us-east-1,s3ForcePathStyle="true",s3Url=http://minio.sims:9001 \
+            --wait
+      - name: Create scheduler
+        shell: |
+          /usr/bin/velero schedule create daily \
+          --schedule="11 3 * * *" --ttl 168h0m0s --snapshot-volumes=true
+      when: inventory_hostname == "master1"

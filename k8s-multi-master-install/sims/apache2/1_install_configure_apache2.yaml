@@ -1,0 +1,37 @@
+- hosts: masters
+  tasks:
+  - name: Install apache
+    apt:
+      name:
+      - apache2
+      - apache2-bin
+      - apache2-data
+      - apache2-utils
+      - rsync
+  - name: Common files sync...
+    synchronize:
+        src: files/data
+        dest: /
+  - name: Copy simst-kub1
+    copy:
+      src: files/simst-kub1.conf
+      dest: /etc/apache2/sites-available/simst-kub1.conf
+
+  - name: Create symlink in sites-enabled
+    file:
+      src:  /etc/apache2/sites-available/simst-kub1.conf
+      dest:  /etc/apache2/sites-enabled/simst-kub1.conf
+      state: link
+
+
+  - name: Enable apache2 cgid for nexus web hooks support...
+    shell: |
+      /usr/sbin/a2enmod cgid
+      /usr/sbin/a2dissite 000-default
+      /usr/sbin/a2ensite simst-kub1
+
+  - name: Restart Apache2
+    systemd:
+      name: apache2
+      enabled: yes
+      state: restarted

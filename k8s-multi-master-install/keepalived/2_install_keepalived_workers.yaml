@@ -1,10 +1,9 @@
 ---
-- hosts: [masters]
+- hosts: [workers]
   become: yes
   vars_files:
     - ../../variables.yaml
   tasks:
-
   - name: install Keepalived
     apt:
       name: keepalived
@@ -12,17 +11,17 @@
 
   - name: Copy keepalived config on master
     template:
-      src: files/keepalived-master.conf.j2
+      src: files/workers/keepalived-master.conf.j2
       dest: /etc/keepalived/keepalived.conf
     notify: Restart keepalived
-    when: inventory_hostname == "master1"
+    when: inventory_hostname == "worker1"
 
   - name: Copy keepalived config on slaves
     template:
-      src: files/keepalived-slave.conf.j2
+      src: files/workers/keepalived-slave.conf.j2
       dest: /etc/keepalived/keepalived.conf
     notify: Restart keepalived
-    when: inventory_hostname != "master1"
+    when: inventory_hostname != "worker1"
 
 
   handlers:

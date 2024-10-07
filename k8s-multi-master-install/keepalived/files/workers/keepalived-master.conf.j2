@@ -5,14 +5,14 @@ vrrp_script chk_haproxy {
 }
 
 vrrp_instance VI_1 {
-  interface ens33            # interface to monitor
-  state BACKUP                # MASTER on master, BACKUP on slaves
+  interface {{ KEEPALIVED_INTERFACE }}            # interface to monitor
+  state MASTER                # MASTER on master, BACKUP on slaves
 
   virtual_router_id 51
-  priority 100                # 101 on master, 100 on slaves
+  priority 101                # 101 on master, 100 on slaves
 
   virtual_ipaddress {
-    {{ LB_IP }}/24          # virtual ip address
+    {{ WORKERS_VIP }}/24          # virtual ip address
   }
 
   track_script {

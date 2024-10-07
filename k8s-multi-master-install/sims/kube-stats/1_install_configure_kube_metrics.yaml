@@ -1,0 +1,28 @@
+---
+- hosts: master1
+  tasks:
+  - name: Check if promtail is installed
+    shell:  helm list -A | grep kube-state-metrics
+    register: helm_list
+    ignore_errors: true
+
+  - name: Install kube-metrics
+    when: helm_list.stdout == ""
+    block:
+    - name: Copy rbac for kube-metrics
+      copy:
+        src: files/rbac.yaml
+        dest: /root/km-rbac.yaml
+    - name: Apply rbac for kube-metrics
+      shell: kubectl apply -f /root/km-rbac.yaml
+
+    - name: Copy kube-stat values file for helm
+      copy:
+        src: files/values.yaml
+        dest: /root/values.yaml
+    - name: Install kube-metrics using helm
+      shell: |
+        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+        helm repo update
+        helm install kube-state-metrics prometheus-community/kube-state-metrics  --create-namespace --namespace ksmet -f /root/values.yaml
+  

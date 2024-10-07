@@ -1,33 +1,39 @@
 ---
-# setup requirements for k8s
-- include: 'k8s/1_setup_k8s_requirements.yaml'
+#- import_playbook: 'k8s/9_add_certs.yaml'
 
-# install and configure keepalived
-- include: 'keepalived/1_install_keepalived.yaml'
+## setup requirements for k8s
+#- import_playbook: 'k8s/1_1_create_lvm.yaml'
+#- import_playbook: 'k8s/1_setup_k8s_requirements.yaml'
+#
+##
+### install and configure keepalived
+#- import_playbook: 'keepalived/1_install_keepalived_masters.yaml'
+#- import_playbook: 'keepalived/2_install_keepalived_workers.yaml'
+##
+### install haproxy
+#- import_playbook: 'haproxy/1_install_haproxy.yaml'
+##
+### init first master node
+#- import_playbook: 'k8s/2_init_first_master.yaml'
+##
+### generate cert and string for connetcion
+#- import_playbook: 'k8s/3_generate_cert_and_init.yaml'
+##
+### add other controls
+#- import_playbook: 'k8s/4_init_other_masters.yaml'
+##
+### add workers
+#- import_playbook: 'k8s/5_init_workers.yaml'
+##
+### add CNI
+#- import_playbook: 'k8s/6_init_network_provider.yaml'
+#- import_playbook: 'k8s/7_install_helm.yaml'
+#- import_playbook: 'k8s/8_save_cert_localy.yaml'
 
-# install haproxy
-- include: 'haproxy/1_install_haproxy.yaml'
-
-# init first master node
-- include: 'k8s/2_init_first_master.yaml'
-
-# generate cert and string for connetcion
-- include: 'k8s/3_generate_cert_and_init.yaml'
-
-# add other controls
-- include: 'k8s/4_init_other_masters.yaml'
-
-# add workers
-- include: 'k8s/5_init_workers.yaml'
-
-# add CNI
-- include: 'k8s/6_init_network_provider.yaml'
-- include: 'k8s/7_install_helm.yaml'
-- include: 'k8s/8_save_cert_localy.yaml'
 #- include: 'openebs/1_configure_linux.yaml'
 #- include: 'openebs/2_configure_openebs.yaml'
-
-
+#
+#
 ## configure glusterfs
 #- include: 'glusterfs/1_install_glusterfs.yaml'
 #- include: 'glusterfs/2_init_glusterd_cluster.yaml'
@@ -38,3 +44,15 @@
 #- include: 'glusterfs/5_create_ssh_for_heketi_share_with_masters.yaml'
 #- include: 'glusterfs/6_configure_heketi.yaml'
 #- include: 'glusterfs/7_add_storage_to_k8s.yaml'
+
+# apache2
+- import_playbook: 'sims/apache2/1_install_configure_apache2.yaml'
+# velero
+- import_playbook: 'sims/velero/1_install_configure.yaml'
+# kube-metrics
+- import_playbook: 'sims/kube-stats/1_install_configure_kube_metrics.yaml'
+# logs
+- import_playbook: 'sims/promtail/1_create_configure_promtail.yaml'
+
+## nfs provisioner
+- import_playbook: 'NFS_provisioner/1_install_configure_provisioner.yaml'

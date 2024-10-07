@@ -1,0 +1,37 @@
+---
+- hosts: master1
+  vars_files:
+    - ../../variables.yaml
+  tasks:
+  - name: Check if install script exists locally
+    stat:
+      path: /root/install-driver.sh
+    register: install_script
+  - name: Install NFS CSI Driver
+    when: not install_script.stat.exists
+    block:
+    - name: Install nfs-common
+      apt:
+        name: nfs-common
+        state: latest
+    - name: Install NFS CSI Driver
+      get_url:
+        url: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/v4.5.0/deploy/install-driver.sh
+        dest: /root/install-driver.sh
+        mode: '0755'
+    - name: Run install script
+      command: /root/install-driver.sh v4.5.0 --
+      register: install_result
+    - name: Display install output
+      debug:
+        var: install_result.stdout_lines
+
+    - name: Copy storage class .yaml
+      template:
+        src: files/storage-class.yaml
+        dest: /root/storage-class.yaml
+
+    - name: Add storage class
+      shell: kubectl apply -f /root/storage-class.yaml
+
+

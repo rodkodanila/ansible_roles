@@ -1,0 +1,19 @@
+- hosts: all
+  tasks:
+  - name: Copy certificate to the remote host
+    copy:
+      src: "{{ item.src }}"
+      dest: /usr/local/share/ca-certificates
+      owner: root
+      group: root
+      mode: 0644
+    with_items:
+      - { src: 'files/certs/root-ivc.crt'}
+      - { src: 'files/certs/root-mfrb.crt'}
+      - { src: 'files/certs/sub-ivc.crt'}
+      - { src: 'files/certs/sub-mfrb.crt'}
+
+  - name: Update the CA certificate trust
+    command: "/usr/sbin/update-ca-certificates"
+  - name: reboot
+    reboot:

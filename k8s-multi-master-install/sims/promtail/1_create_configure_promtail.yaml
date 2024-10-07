@@ -1,0 +1,30 @@
+---
+- hosts: master1
+  tasks:
+
+  - name: Check if promtail is installed
+    shell: helm list -A | grep promtail
+    register: helm_list
+    ignore_errors: true
+
+  - name: Install promtail
+    when: helm_list.stdout == ""
+    block:
+
+    - name: Add helm repo
+      shell: |
+        helm repo add grafana https://grafana.github.io/helm-charts
+        helm repo update
+    - name: Apply promtail inside k8s cluster
+      shell: |
+       helm upgrade --namespace loki --create-namespace \
+            --install promtail grafana/promtail \
+            --version "6.11.3" \
+            --set configmap.enabled=true \
+            --set daemonset.enabled=true
+    - name: Copy config map
+      copy:
+        src: files/promtail.yaml
+        dest: /root/promtail-cm.yaml
+    - name: Add cm for promtail inside cluster
+      shell: kubectl apply -f  /root/promtail-cm.yaml

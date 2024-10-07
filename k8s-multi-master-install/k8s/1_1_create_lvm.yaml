@@ -1,0 +1,81 @@
+- hosts: all
+  vars_files:
+    - ../../variables.yaml
+  tasks:
+  - name: Install LVM2
+    apt:
+      name:
+      - lvm2
+      - xfsprogs
+      state: latest
+  - name: Create volume k8s
+    lvg:
+      pvs: "{{ K8S_DISK }}"
+      vg: k8s
+      pvresize: yes
+    when: inventory_hostname != "master2"
+  - name: Create volume k8s
+    lvg:
+      pvs: "/dev/sda"
+      vg: k8s
+      pvresize: yes
+    when: inventory_hostname == "master2"
+  - name: Create logic lv-k8s
+    lvol:
+      vg: k8s
+      lv: lv-k8s
+      size: 100%VG
+      state: present
+  - name: Create xfs /dev/k8s/lv-k8s
+    community.general.filesystem:
+      fstype: xfs
+      dev: /dev/k8s/lv-k8s
+      state: present
+  - name: Create mount point /data/k8s
+    file:
+      path: /data/k8s
+      owner: root
+      group: root
+      state: directory
+      mode: '0755'
+  - name: mount /dev/k8s/lv-k8s
+    ansible.posix.mount:
+      src: /dev/k8s/lv-k8s
+      path: /data/k8s
+      fstype: xfs
+      opts: defaults,noatime
+      state: mounted
+
+  - name: Create mount point /data/k8s/containerd
+    file:
+      path: /data/k8s/containerd
+      owner: root
+      group: root
+      state: directory
+      mode: '0755'
+
+  - name: mount /var/lib/containerd
+    ansible.posix.mount:
+      src: /data/k8s/containerd
+      path: /var/lib/containerd
+      fstype: none
+      opts: bind
+      state: mounted
+
+  - name: Create mount point /data/k8s/kubelet
+    file:
+      path: /data/k8s/kubelet
+      owner: root
+      group: root
+      state: directory
+      mode: '0755'
+
+  - name: mount /var/lib/kubelet
+    ansible.posix.mount:
+      src: /data/k8s/kubelet
+      path: /var/lib/kubelet
+      fstype: none
+      opts: bind
+      state: mounted
+
+
